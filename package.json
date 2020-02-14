@@ -6,6 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy": "cross-env SLSUSER=afergon serverless deploy --aws-profile serverless-local",
+    "deploy:sid": "cross-env SLSUSER=afergon STAGE=sid serverless deploy --aws-profile serverless-local",
+    "deploy:prod": "cross-env SLSUSER=afergon STAGE=prod serverless deploy --aws-profile serverless-local",
     "test:integration": "jest **/*.test.js",
     "test:acceptance": "cross-env TEST_MODE=http jest ./tests/*",
     "seed": "cross-env AWS_PROFILE=serverless-local node seedGetTogethers.js devafergon-gettogethers"
