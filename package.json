@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy": "serverless deploy --aws-profile serverless-local",
-    "test:integration": "jest **/*.test.js"
+    "test:integration": "jest **/*.test.js",
+    "test:acceptance": "cross-env TEST_MODE=http jest ./tests/*"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +15,7 @@
     "serverless": "^1.63.0"
   },
   "devDependencies": {
+    "cross-env": "^7.0.0",
     "jest": "^25.1.0"
   }
 }

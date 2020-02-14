@@ -8,7 +8,7 @@ async function viaHandler(functionPath, event) {
 }
 
 async function viaHttp(functionPath) {
-    const apiRoot = "https://nb557qv31e.execute-api.eu-west-1.amazonaws.com/dev/api";
+    const apiRoot = "https://zegp9cilq2.execute-api.eu-west-1.amazonaws.com/dev2/api";
     const method = "GET";
 
     const url = `${apiRoot}/${functionPath}`;
