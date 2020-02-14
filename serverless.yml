@@ -6,13 +6,20 @@ provider:
     region: eu-west-1
     stage: dev2
 
+plugins:
+    - serverless-iam-roles-per-function
+
 functions:
-    helloWorld:
-        handler: src/functions/helloWorld.handler
+    getGetTogethers:
+        handler: src/functions/getGetTogethers.handler
         events:
             - http:
-                path: api/helloWorld/{name}
-                method: get
+                  path: api/getTogethers
+                  method: get
+        iamRoleStatements:
+            - Effect: Allow
+              Action: dynamodb:scan
+              Resource: !GetAtt GetTogethersTable.Arn
 
 resources:
     Resources:
