@@ -16,7 +16,9 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.618.0",
-    "serverless": "^1.63.0"
+    "chance": "^1.1.4",
+    "serverless": "^1.63.0",
+    "serverless-pseudo-parameters": "^2.5.0"
   },
   "devDependencies": {
     "cross-env": "^7.0.0",
