@@ -1,6 +1,6 @@
 module.exports.handler = async (event) => {
     console.log(JSON.stringify(event));
-    const name = event.queryStringParameters.name;
+    const name = event.pathParameters.name;
 
     const res = {
         statusCode: 200,
