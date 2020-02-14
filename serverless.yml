@@ -4,6 +4,7 @@ custom:
   defaultRegion: eu-west-1
   defaultStage: dev${env:SLSUSER, ""}
   getTogethersTableName: ${self:provider.stage}-gettogethers
+  joinGetTogetherSnsTopicName: ${self:provider.stage}-joingettogethers
 
 provider:
     name: aws
@@ -27,6 +28,11 @@ functions:
               Resource: !GetAtt GetTogethersTable.Arn
         environment:
             getTogethersTableName: ${self:custom.getTogethersTableName}
+    notifyOrganiser:
+        handler: src/functions/notifyOrganiser.handler
+        events:
+            - sns: ${self:custom.joinGetTogetherSnsTopicName}
+
 
 resources:
     Resources:
