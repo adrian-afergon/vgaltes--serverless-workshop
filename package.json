@@ -10,7 +10,7 @@
     "deploy:prod": "cross-env SLSUSER=afergon STAGE=prod serverless deploy",
     "test:integration": "jest **/*.test.js",
     "test:acceptance": "cross-env TEST_MODE=http jest ./tests/*",
-    "seed": "cross-env AWS_PROFILE=serverless-local node seedGetTogethers.js devafergon-gettogethers"
+    "seed": "cross-env AWS_PROFILE=serverless-local node seedGetTogethers.js devafergon-gettogethers",
     "seed:sit": "node seedGetTogethers.js sitafergon-gettogethers"
   },
   "author": "",
