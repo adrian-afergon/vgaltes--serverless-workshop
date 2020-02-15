@@ -28,8 +28,11 @@ functions:
             - Effect: Allow
               Action: dynamodb:scan
               Resource: !GetAtt GetTogethersTable.Arn
+            - Effect: Allow
+              Action: ssm:GetParameters*
+              Resource: arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/gettogethers/${self:provider.stage}/*
         environment:
-            getTogethersTableName: ${self:custom.getTogethersTableName}
+            getTogethersTableNamePath: /gettogethers/${self:provider.stage}/secureTableName
 
     joinGetTogether:
         handler: src/functions/joinGetTogether.handler
