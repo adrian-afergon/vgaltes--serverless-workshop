@@ -7,15 +7,66 @@ custom:
   joinGetTogetherSnsTopicName: ${self:provider.stage}-joingettogethers
   joinGetTogetherSnsTopic: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:custom.joinGetTogetherSnsTopicName}
 
+  notifyOrganiserDLQSnsTopicName: ${self:provider.stage}-joingettogetherdlq
+  notifyOrganiserDLQSnsTopic: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:custom.notifyOrganiserDLQSnsTopicName}
+  notifications:
+    - protocol: email
+      endpoint: "adrian.afergon@gmail.com"
+  alerts:
+    dashboards: true
+
+    topics:
+      ok:
+        topic: ${self:service}-${self:provider.stage}-alerts-ok
+        notifications: ${self:custom.notifications}
+      alarm:
+        topic: ${self:service}-${self:provider.stage}-alerts-alarm
+        notifications: ${self:custom.notifications}
+      insufficientData:
+        topic: ${self:service}-${self:provider.stage}-alerts-insufficientData
+        notifications: ${self:custom.notifications}
+
+    definitions:
+      functionDurationP95:
+        namespace: 'AWS/Lambda'
+        metric: Duration
+        threshold: 100
+        statistic: 'p95'
+        period: 60
+        evaluationPeriods: 1
+        datapointsToAlarm: 1
+        comparisonOperator: GreaterThanThreshold
+        treatMissingData: missing
+
+      alarms:
+        - functionThrottles
+        - functionErrors
+        - functionInvocations
+        - functionDuration
+        - functionDurationP95
+
+package:
+  exclude:
+    - cloudwatch-logs-tologzio
+    - tests/**
+
 provider:
     name: aws
     runtime: nodejs12.x
     region: ${opt:region, self:custom.defaultRegion}
     stage: ${opt:stage, self:custom.defaultStage}
+    tracing: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - 'xray:PutTraceSegments'
+          - 'xray:PutTelemetryRecords'
+        Resource: '*'
 
 plugins:
     - serverless-iam-roles-per-function
     - serverless-pseudo-parameters
+    - serverless-plugin-aws-alerts
 
 functions:
     getGetTogethers:
@@ -24,6 +75,11 @@ functions:
             - http:
                   path: api/getTogethers
                   method: get
+                  cors: true
+                  authorizer:
+                    name: authorizer
+                    arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/eu-west-1_zCHuiDkX1
+        iamRoleStatementsInherit: true
         iamRoleStatements:
             - Effect: Allow
               Action: dynamodb:scan
@@ -42,6 +98,7 @@ functions:
                 method: post
         environment:
             joinGetTogetherSnsTopic: ${self:custom.joinGetTogetherSnsTopic}
+        iamRoleStatementsInherit: true
         iamRoleStatements:
             - Effect: Allow
               Action: sns:Publish
@@ -51,6 +108,19 @@ functions:
         handler: src/functions/notifyOrganiser.handler
         events:
             - sns: ${self:custom.joinGetTogetherSnsTopicName}
+        onError: !Ref NotifyOrganiserDLQSnsTopic
+        iamRoleStatementsInherit: true
+        iamRoleStatements:
+          - Effect: Allow
+            Action: sns:Publish
+            Resource: !Ref NotifyOrganiserDLQSnsTopic
+
+    notifyOrganiserDLQ:
+        handler: src/functions/notifyOrganiserDLQ.handler
+        events:
+          - sns:
+              arn: !Ref NotifyOrganiserDLQSnsTopic
+              topicName: ${self:custom.notifyOrganiserDLQSnsTopicName}
 
     testAutoSubscribe:
         handler: src/functions/testAutoSubscribe.handler
@@ -83,3 +153,24 @@ resources:
               DestinationArn: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:cloudwatch-logs-to-logzio-tenerife-${self:provider.stage}-ship-logs-to-logzio
               Prefix: "/aws/lambda"
               OverrideManualConfigs: true
+        NotifyOrganiserDLQSnsTopic:
+          Type: AWS::SNS::Topic
+          Properties:
+            TopicName: ${self:custom.notifyOrganiserDLQSnsTopicName}
+        CognitoUserPool:
+          Type: AWS::Cognito::UserPool
+          Properties:
+            UserPoolName: ${self:provider.stage}-testauthsls-user-pool
+            # Allow email addresses to be used as username
+            UsernameAttributes:
+              - email
+            AutoVerifiedAttributes:
+              - email
+
+        CognitoUserPoolClient:
+          Type: AWS::Cognito::UserPoolClient
+          Properties:
+            ClientName: ${self:provider.stage}-testauthsls-user-pool-client
+            UserPoolId:
+              Ref: CognitoUserPool
+            GenerateSecret: false

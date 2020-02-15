@@ -1,4 +1,5 @@
-const AWS = require("aws-sdk");
+const AWSXray = require("aws-xray-sdk");
+const AWS = AWSXray.captureAWS(require("aws-sdk"));
 const middy = require("middy");
 const { ssm } = require("middy/middlewares");
 
@@ -17,6 +18,10 @@ const handler = async (evt, context) => {
 
     const res = {
         statusCode: 200,
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": true
+        },
         body: JSON.stringify(resp.Items)
     };
 
